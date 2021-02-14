@@ -1,6 +1,7 @@
 const express = require('express');
 
 const mongodb = require('./connection');
+const user = require('./model/user');
 
 const userModel = require('./model/user');
 
@@ -12,7 +13,7 @@ app.get("/", (req, res)=>{
     res.send("<h1>Connected</h1>");
 });
 
-app.get("/login", (req, res) => {
+app.post("/login", (req, res) => {
     email = req.body.email;
     password = req.body.password;
 
@@ -21,7 +22,7 @@ app.get("/login", (req, res) => {
             res.status(500).send("Error getting user from database");
         }else{
             if(doc && doc.password == password) {
-                res.status(200).send("Logged in");
+                res.status(200).json({"name": doc.name, "email" : doc.email, "password": doc.password});
             }else{
                 res.status(401).send('Invalid Login');
             }
@@ -33,6 +34,10 @@ app.post("/signup",(req, res) => {
     username = req.body.name;
     email = req.body.email;
     password = req.body.password;
+
+    // console.log(username);
+    // console.log(email);
+    // console.log(password);
 
     userModel.findOne({"email" : email},async (err, doc) => {
         if(err){
