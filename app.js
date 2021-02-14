@@ -1,0 +1,68 @@
+const express = require('express');
+
+const mongodb = require('./connection');
+
+const userModel = require('./model/user');
+
+const app = express();
+
+app.use(express.json());
+
+app.get("/", (req, res)=>{
+    res.send("<h1>Connected</h1>");
+});
+
+app.get("/login", (req, res) => {
+    email = req.body.email;
+    password = req.body.password;
+
+    userModel.findOne({"email": email},(err, doc) => {
+        if(err){
+            res.status(500).send("Error getting user from database");
+        }else{
+            if(doc && doc.password == password) {
+                res.status(200).send("Logged in");
+            }else{
+                res.status(401).send('Invalid Login');
+            }
+        }
+    });
+});
+
+app.post("/signup",(req, res) => {
+    username = req.body.name;
+    email = req.body.email;
+    password = req.body.password;
+
+    userModel.findOne({"email" : email},async (err, doc) => {
+        if(err){
+            res.status(500).send("Error signing up");
+        }else{
+            if(doc){
+                res.status(409).send("User already exists");
+            }else{
+                const user = new userModel();
+                user.name = username;
+                user.email = email;
+                user.password = password;
+                await user.save();
+                res.status(201).send("Sign up successful");
+            }
+        }
+    });
+
+});
+
+app.get("/users", (req, res) => {
+    userModel.find((err, docs) => {
+        if(err){
+            res.send("Error getting users from database");
+        }else{
+            res.send(docs);
+        }
+    });
+});
+
+app.listen(3000,() => {
+    console.log("Server listening at port: 3000");
+});
