@@ -39,7 +39,7 @@ app.post("/signup",(req, res) => {
     // console.log(email);
     // console.log(password);
 
-    userModel.findOne({"email" : email},async (err, doc) => {
+    userModel.findOne({"email" : email},(err, doc) => {
         if(err){
             res.status(500).send("Error signing up");
         }else{
@@ -50,8 +50,13 @@ app.post("/signup",(req, res) => {
                 user.name = username;
                 user.email = email;
                 user.password = password;
-                await user.save();
-                res.status(201).send("Sign up successful");
+                user.save((err) => {
+                    if(err){
+                        res.status(500).send("Sign up unsuccessful.");
+                    }else{
+                        res.status(201).send("Sign up successful");
+                    }
+                }); 
             }
         }
     });
