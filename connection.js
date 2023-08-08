@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 
-mongoose.connect('mongodb://localhost:27017/developer', {useNewUrlParser: true}, (err) => {
+let uri = 'mongodb+srv://ravijohn:Lumiablack@5@cluster0.4rp5eyl.mongodb.net/?retryWrites=true&w=majority'
+
+mongoose.connect(uri, {useNewUrlParser: true}, (err) => {
     if(!err){
         console.log("Connected to database");
     }else{
