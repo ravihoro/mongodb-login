@@ -13,44 +13,43 @@ app.get("/", (req, res)=>{
     res.send("<h1>Connected</h1>");
 });
 
-function getResponse(success, message, user) {
-    return {"success": success,"message": message, "user": user}
+function getResponse(isSuccess, message, user) {
+    return {"isSuccess": isSuccess,"message": message, "user": user}
 }
 
-function getUserResponse(name, email) {
-    return {"name": name, "email" :email,}   
+function getUserResponse(name, email, id, password) {
+    return {"name": name, "email" :email, "id": id, "password": password}   
 }
 
 app.post("/login", (req, res) => {
     email = req.body.email;
     password = req.body.password;
 
-    if(!email){
-        res.status(401).send(getResponse(false, 'Email Missing'));
+    if(!email && !password){
+        res.status(400).send(getResponse(false, "Email and Password missing"));
+    }
+    else if(!email){
+        res.status(400).send(getResponse(false, 'Email Missing'));
     }else if(!password){
-        res.status(401).send(getResponse(false,'Password Missing'));
+        res.status(400).send(getResponse(false,'Password Missing'));
     }else{
-        userModel.findOne({"email": email},(err, doc) => {
+        userModel.findOne({"email": email, "password": password},(err, doc) => {
             if(err){
-                res.status(500).send(getResponse(false,"Error getting user from database"));
+                res.status(500).send(getResponse(false,"Internal Server Error"));
             }else{
                 if(!doc){
-                    res.status(401).send( getResponse(false,"User not found."));
+                    res.status(404).send( getResponse(false,"User not found."));
                 }
-                else if(doc && doc.password == password) {
-                    res.status(200).json(getResponse(true, 'Login successful',getUserResponse(doc.name, doc.email,)));
-                }else{
-                    res.status(401).send(false,getResponse('Invalid Login'));
+                else {
+                    res.status(200).json(getResponse(true, 'Login successful', getUserResponse(doc.name, doc.email)));
                 }
             }
         });
     }
-
-    
 });
 
 app.post("/signup",(req, res) => {
-    username = req.body.name;
+    name = req.body.name;
     email = req.body.email;
     password = req.body.password;
 
@@ -66,14 +65,14 @@ app.post("/signup",(req, res) => {
                 res.status(409).send(getResponse(false,"User already exists"));
             }else{
                 const user = new userModel();
-                user.name = username;
+                user.name = name;
                 user.email = email;
                 user.password = password;
                 user.save((err) => {
                     if(err){
                         res.status(500).send(getResponse(false,"Sign up unsuccessful."));
                     }else{
-                        res.status(201).send(getResponse(true, 'Sign up successful',getUserResponse(username, email)));
+                        res.status(201).send(getResponse(true, 'Sign up successful',getUserResponse(name, email)));
                     }
                 }); 
             }
